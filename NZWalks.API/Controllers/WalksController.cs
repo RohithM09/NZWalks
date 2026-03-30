@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NZWalks.API.CustomActionFilters;
 using NZWalks.API.Models.Domain;
 using NZWalks.API.Models.DTO;
 using NZWalks.API.Repositories;
@@ -18,17 +19,19 @@ namespace NZWalks.API.Controllers
             _walkRepository = walkRepository;
         }
         [HttpPost]
+        [ValidateModel]
         public async Task<IActionResult> Create([FromBody] AddWalkRequestDTO walkDTO)
         {
-            var walk = _mapper.Map<Walk>(walkDTO);
-            var output = await _walkRepository.CreateAsync(walk);
-            var res = _mapper.Map<WalkDTO>(output);
-            return Ok(res);
+           
+                var walk = _mapper.Map<Walk>(walkDTO);
+                var output = await _walkRepository.CreateAsync(walk);
+                var res = _mapper.Map<WalkDTO>(output);
+                return Ok(res);
         }
         [HttpGet]
-        public async Task<IActionResult> GetWalks()
+        public async Task<IActionResult> GetWalks([FromQuery] string? filterOn, [FromQuery] string? filterQuery, [FromQuery] string? sortBy,[FromQuery] bool? isAscending, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize=1000)
         {
-            var output = await _walkRepository.GetAllAsync();
+            var output = await _walkRepository.GetAllAsync(filterOn,filterQuery,sortBy,isAscending??true,pageNumber,pageSize);
             var res = _mapper.Map<List<WalkDTO>>(output);
 
             return Ok(res);
@@ -50,16 +53,18 @@ namespace NZWalks.API.Controllers
         }
         [HttpPut]
         [Route("{Id:Guid}")]
+        [ValidateModel]
         public async Task<IActionResult> Update([FromRoute]Guid Id, UpdateWalkRequestDTO updateWalkRequest)
         {
-            var result = _mapper.Map<Walk>(updateWalkRequest);
-            var output = await _walkRepository.UpdateAsync(Id, result);
-            if (output == null)
-            {
-                return NotFound();
-            }
-            var fin = _mapper.Map<WalkDTO>(output);
-            return Ok(fin);
+            
+                var result = _mapper.Map<Walk>(updateWalkRequest);
+                var output = await _walkRepository.UpdateAsync(Id, result);
+                if (output == null)
+                {
+                    return NotFound();
+                }
+                var fin = _mapper.Map<WalkDTO>(output);
+                return Ok(fin);
         }
         [HttpDelete]
         [Route("{Id:Guid}")]

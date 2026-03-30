@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NZWalks.API.CustomActionFilters;
 using NZWalks.API.Data;
 using NZWalks.API.Models.Domain;
 using NZWalks.API.Models.DTO;
@@ -11,6 +13,7 @@ namespace NZWalks.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class RegionsController : ControllerBase
     {
         private readonly NZWalksDbContext _dbContext;
@@ -44,31 +47,35 @@ namespace NZWalks.API.Controllers
 
         }
         [HttpPost]
+        [ValidateModel]
         public async Task<IActionResult> Create([FromBody] AddRegionRequestDTO regionDTO)
         {
+           
 
-            var region = _mapper.Map<Region>(regionDTO);
-            region = await _regionRepository.CreateAsync(region);
+                var region = _mapper.Map<Region>(regionDTO);
+                region = await _regionRepository.CreateAsync(region);
 
-            var outputDTO =_mapper.Map<RegionDTO>(region);
-            return CreatedAtAction(nameof(GetRegionById), new { id = outputDTO.Id }, outputDTO);
+                var outputDTO = _mapper.Map<RegionDTO>(region);
+                return CreatedAtAction(nameof(GetRegionById), new { id = outputDTO.Id }, outputDTO);
         }
 
         [HttpPut]
         [Route("{Id:Guid}")]
+        [ValidateModel]
         public async Task<IActionResult> Update([FromRoute]Guid Id, [FromBody] UpdateRegionRequestDTO updateRegionRequest)
         {
-            var sendRegion = _mapper.Map<Region>(updateRegionRequest);
-            var region = await _regionRepository.UpdateAsync(Id,sendRegion);
+            
+                var sendRegion = _mapper.Map<Region>(updateRegionRequest);
+                var region = await _regionRepository.UpdateAsync(Id, sendRegion);
                 if (region == null)
                 {
                     return NotFound();
                 }
 
 
-            var response = _mapper.Map<RegionDTO>(region);
+                var response = _mapper.Map<RegionDTO>(region);
 
-            return Ok(response);
+                return Ok(response);
         }
         [HttpDelete]
         [Route("{Id:Guid}")]
